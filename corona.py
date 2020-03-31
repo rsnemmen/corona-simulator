@@ -12,7 +12,7 @@ import random
 
 
 
-class Pluto:
+class Agents:
 	"""
 	Class that defines a population of agents infected by an epidemic.
 	
@@ -22,69 +22,39 @@ class Pluto:
 	- vx,vy: velocities
 	- health
 	- sick: is the agent sick?
+
+	d is a dictionary with the initial state for the population.
 	"""
 		
-	def __init__(self, *arg,**args):			
-		# mesh,  and velocities
-		'''
-		if d.n1>1: 
-			self.x1,self.v1,self.n1,self.dx1=d.x1,d.vx1,d.n1,d.dx1
-			self.speed=numpy.sqrt(self.v1*self.v1)
-		if d.n2>1: 
-			self.x2,self.v2,self.n2,self.dx2=d.x2,d.vx2,d.n2,d.dx2
-			self.speed=numpy.sqrt(self.v1*self.v1 + self.v2*self.v2)
-		if d.n3>1: 
-		'''
-		self.x1,self.v1,self.n1,self.dx1=d.x1,d.vx1,d.n1,d.dx1
-		self.x2,self.v2,self.n2,self.dx2=d.x2,d.vx2,d.n2,d.dx2
-		self.x3,self.v3,self.n3,self.dx3=d.x3,d.vx3,d.n3,d.dx3
-		self.speed=numpy.sqrt(self.v1*self.v1 + self.v2*self.v2 + self.v3*self.v3)
+	def __init__(self, d, *arg,**args):
+		self.nagents=d['nagents']
 
-		# polar coordinates (code units in spherical coords)
-		self.r=self.x1
-		self.th=-(self.x2-numpy.pi/2.) # spherical angle => polar angle
+		# positions
+		self.x=np.random.uniform(d['xbox0'],d['xbox1'],self.nagents)
+		self.y=np.random.uniform(d['ybox0'],d['ybox1'],self.nagents)
 
-		# convenient meshgrid arrays
-		self.X1,self.X2=numpy.meshgrid(self.x1,self.x2)
-		self.DX1,self.DX2=numpy.meshgrid(self.dx1,self.dx2)
-		self.R,self.TH=numpy.meshgrid(self.r,self.th)
-		self.X,self.Y=nmmn.misc.pol2cart(self.R,self.TH)
+		# velocities initialized all the same, with random directions
+		self.theta=np.random.uniform(0,2*np.pi,self.nagents)
+		self.vx=np.ones_like(x)*np.cos(theta)
+		self.vy=np.ones_like(x)*np.sin(theta)
 
-		# fluid variables
-		self.p=d.prs # pressure
-		self.rho=d.rho # volume density
-		self.getgamma() # gets value of adiabatic index
-		self.entropy=numpy.log(self.p/self.rho**self.gamma)
-		self.am=self.v3.T*self.X1*numpy.sin(self.X2) # specific a. m., vphi*r*sin(theta)
-		self.Be=self.speed.T**2/2.+self.gamma*self.p.T/((self.gamma-1.)*self.rho.T)-1./self.X1	# Bernoulli function
-		self.Omega=self.v3.T/self.X1	# angular velocity
+		# health:
+		# - 0: healthy
+		# - 1: infected
+		# - 2: recovering
+		self.health=np.zeros(self.nagents,dtype=int)
 
-		# misc. info
-		self.t=d.SimTime
-		self.pp =d # pypluto object
-		self.frame=i
-		self.vars=d.vars
-		self.geometry=d.geometry
-
-		# sound speed
-		#self.soundspeed() # computes numerical cs (no need to specify EoS)
-		self.cs=numpy.sqrt(self.gamma*self.p/self.rho)
-
-		# mach number
-		if d.n1>1: self.mach1=self.v1/self.cs
-		if d.n2>1: self.mach2=self.v2/self.cs
-		if d.n3>1: self.mach3=self.v3/self.cs
-		self.mach=self.speed/self.cs
-
-		# accretion rates as a function of radius
-		self.getmdot() # net accretion rate, self.mdot
-		self.getmdotin() # inflow, self.mdotin
-		self.getmdotout() # outflow, self.mdotout
-
-		# total mass in computational volume, self.mass
-		self.getmass()
+		self.init_infect()
 
 
 
 
+
+
+	def init_infect():
+		# randomly initialize a fraction of the agents as infected
+		# list of random elements, non-repeating
+		i=random.sample(range(self.nagents),int(self.sick*self.nagents))
+		
+		self.health[i]=1
 
