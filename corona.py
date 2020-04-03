@@ -27,22 +27,30 @@ class Agents:
 	"""
 		
 	def __init__(self, d, *arg,**args):
-		self.nagents=d['nagents']
+		nagents=d['nagents']
 
 		# positions
-		self.x=np.random.uniform(d['xbox0'],d['xbox1'],self.nagents)
-		self.y=np.random.uniform(d['ybox0'],d['ybox1'],self.nagents)
+		x=np.random.uniform(d['xbox0'],d['xbox1'],nagents)
+		y=np.random.uniform(d['ybox0'],d['ybox1'],nagents)
 
 		# velocities initialized all the same, with random directions
-		self.theta=np.random.uniform(0,2*np.pi,self.nagents)
-		self.vx=np.ones_like(x)*np.cos(theta)
-		self.vy=np.ones_like(x)*np.sin(theta)
+		theta=np.random.uniform(0,2*np.pi,nagents)
+		vx=np.ones_like(x)*np.cos(theta)
+		vy=np.ones_like(x)*np.sin(theta)
 
 		# health:
 		# - 0: healthy
 		# - 1: infected
 		# - 2: recovering
-		self.health=np.zeros(self.nagents,dtype=int)
+		health=np.zeros(nagents,dtype=int)
+
+		# assign object attributes
+		self.x, self.y=x, y
+		self.theta=theta
+		self.nagents=nagents
+		self.vx, self.vy=vx, vy
+		self.sick=d['sick']
+		self.health=health
 
 		self.init_infect()
 
@@ -51,7 +59,7 @@ class Agents:
 
 
 
-	def init_infect():
+	def init_infect(self):
 		# randomly initialize a fraction of the agents as infected
 		# list of random elements, non-repeating
 		i=random.sample(range(self.nagents),int(self.sick*self.nagents))
