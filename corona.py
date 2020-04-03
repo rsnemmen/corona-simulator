@@ -43,7 +43,9 @@ class Agents:
 		# health:
 		# - 0: healthy
 		# - 1: infected
-		# - 2: recovering
+		# - 2: dying
+		# - 3: dead
+		# - 4: recovered
 		health=np.zeros(nagents,dtype=int)
 
 		# assign object attributes
