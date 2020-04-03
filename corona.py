@@ -45,6 +45,7 @@ class Agents:
 		health=np.zeros(nagents,dtype=int)
 
 		# assign object attributes
+		self.pars=d
 		self.x, self.y=x, y
 		self.theta=theta
 		self.nagents=nagents
@@ -66,3 +67,56 @@ class Agents:
 		
 		self.health[i]=1
 
+
+
+
+	def update(self,dt):
+		"""
+		Update state variables.
+		"""
+		self.bounce()
+		self.move(dt)
+		self.infect()
+
+
+
+
+
+	def bounce(self):
+		"""
+		Perform reflections off the walls and between agents.
+		"""
+		# on x
+		i=np.where((self.x<self.pars['xbox0']) | (self.x>self.pars['xbox1']))
+		if np.size(i)>0: self.vx[i]=-self.vx[i]
+		# on y
+		j=np.where((self.y<self.pars['ybox0']) | (self.y>self.pars['ybox1']))
+		if np.size(j)>0: self.vy[j]=-self.vy[j]
+
+
+
+
+	def move(self,dt):
+		"""
+		steps position
+		"""
+		self.x=self.x+self.vx*dt
+		self.y=self.y+self.vy*dt
+
+
+
+	def infect(self):
+		## goes through each particle
+		for p in range(self.nagents):
+		    # position of current particle
+		    xp,yp=self.x[p],self.y[p]
+		    # distances to current particle
+		    distance=np.sqrt((xp-self.x)**2+(yp-self.y)**2)
+		    # mark current particle to avoid issues
+		    distance[p]=self.pars['xbox1']**2
+		    
+		    # find those agents that are sick and close to the current one
+		    i=np.where((distance<=self.pars['dinfect']) & (self.health==1))
+		         
+		    if np.any((distance<=self.pars['dinfect']) & (self.health==1)): 
+		        self.health[p]=1
