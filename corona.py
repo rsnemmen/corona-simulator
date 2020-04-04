@@ -42,11 +42,18 @@ class Agents:
 
 		# health:
 		# - 0: healthy
-		# - 1: infected
-		# - 2: dying
-		# - 3: dead
-		# - 4: recovered
+		# - 1: infected but will ultimately survive
+		# - 2: infected and dying
+		# - 3: dead (gets removed from simulation)
+		# - 4: recovered (TBD)
 		health=np.zeros(nagents,dtype=int)
+
+		# - 0: will survive
+		# - 1: dying
+		dying=health
+
+		# death timer
+		tdeath=np.zeros_like(x)
 
 		# assign object attributes
 		self.pars=d
@@ -70,6 +77,33 @@ class Agents:
 		i=random.sample(range(self.nagents),int(self.sick*self.nagents))
 		
 		self.health[i]=1
+
+		# decides which infected agents will die
+		# step 1: finds newly infected agents
+		mask=np.zeros_like(self.health)
+		mask[self.health==1]=1
+		# step 2: makes the decision
+		self.death_note(mask)
+
+
+
+
+	def death_note(self,mask):
+		"""
+		Decides which infected agents will die. If the agent is unlucky, 
+		starts a countdown for the death.
+
+		mask: array with same size as nagents. 1 if newly-infected
+		"""
+		# generates random numbers, uniformly distributed, that will
+		# be used to decide if agents are goind to die
+		r=np.random.uniform(0,100,self.nagents)
+
+		# the decision
+		i=np.where((mask==1)&(r<=self.pars['death_ratio']*100.))
+		if np.size(i)>0: 
+			self.health[i]=2
+
 
 
 
@@ -131,14 +165,33 @@ class Agents:
 			# find those agents that are sick and close to the current one
 		    i=np.where((distance<=self.pars['dinfect']) & (self.health==1))
 
-		    # if there is at least one person infected close to the current agent...
-		    if np.size(i)>0:
-			    # infects by proximity
-		    	self.health[p]=1
-		    	# add death and recovery timers
-
-		    	# agents bounce each other
+		    # if there is at least one person infected close to the current 
+		    # agent and it is healthy...
+		    if np.size(i)>0 and self.health[p]==0:
+		    	self.infects(p)
+		    # otherwise just bounces the agents off each other
+		    elif np.size(i)>0:
 		    	self.bounce_agent(p,i,distance)
+
+
+
+
+
+	def infects(self,i):
+		"""
+		Computes nature of contagion for the current agent i.
+		"""
+		# creates mask indicating the current agent who was just infected
+		mask=np.zeros_like(self.health)
+		mask[i]=1
+
+		# will the newly infected die?
+		self.death_note(mask)
+
+	    # infects by proximity
+		if self.health[i]!=2:
+			self.health[i]=1
+
 
 
 
